@@ -2,6 +2,7 @@
 
 module Main where
 import System.Environment
+import Data.Char
 
 main :: IO ()
 main = do

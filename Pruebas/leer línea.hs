@@ -1,9 +1,10 @@
--- :main estado1
+-- cat file | ./leer línea
 
 import Control.Monad
 import Data.Char
 
-main = forever $ do
-    putStr "Give me some input: "
-    l <- getLine
-    putStrLn $ map toUpper l
+main = do
+    --putStr "Give me some input: "
+    l <- getContents
+    --putStrLn $ map toUpper l
+    putStr l

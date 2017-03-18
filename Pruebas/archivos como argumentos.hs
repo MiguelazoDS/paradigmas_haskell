@@ -1,4 +1,5 @@
 --ghci> :main estado1
+-- runghc archivos como argumentos.hs estado1
 
 module Main where
 import System.Environment

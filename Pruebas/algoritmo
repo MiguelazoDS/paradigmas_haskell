@@ -1,11 +1,6 @@
-- Leer desde un archivo
-- Pasar elementos a una lista
-- Comparar la cantidad de elementos de X y O           (1)
-	- Si la cantidad de X > cantidad de O. Sigue O
-	- De cualquier otra manera sigue X
-- Por c/E agregar de uno por vez X u O según corresponda para armar tantos estados nuevos como cantidad de E haya en el estado inicial
-- Encolar cada uno de esos nuevos estados
-- Desencolar la cabeza de la cola verificando si es un estado ganador
-	- Si es ganador volver al primer estado de la cola
-	- Si no continuar
-- Volver al paso 1 con el estado que se sacó de la cola 
+- Leer estado desde un archivo.
+- Decidir cuál es el jugador siguiente para ver para que jugador se plantea el algoritmo.
+- Desde ese estado armar tantos estados nuevos como cantidad de E haya en el estado inicial.   (1)
+- Encolar cada uno de esos nuevos estados.
+- Desencolar la cabeza de la cola
+- Volver al paso 1 con el estado que se sacó de la cola

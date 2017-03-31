@@ -1,7 +1,0 @@
-- Leer estado desde un archivo.
-- Decidir cuál es el jugador siguiente para ver para que jugador se plantea el algoritmo.
-- Desde ese estado armar tantos estados nuevos como cantidad de E haya en el estado inicial.   (1)
-- Encolar cada uno de esos nuevos estados.
-- Desencolar la cabeza de la cola
-- Volver al paso 1 con el estado que se sacó de la cola
-

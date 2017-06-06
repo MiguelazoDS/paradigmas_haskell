@@ -61,6 +61,16 @@ ganador t
   -- No hay ganador
   | otherwise = ' '
 
+-- | Verifica que el formato del estado de juego sea válido
+formato :: Tablero -> Bool
+formato tablero
+  | x == 3 && o == 3 = False
+  | x  >= 4 || o >=4 = False
+  | l > 0 = False
+  | otherwise = True
+  where
+  (x,o)=(cantX tablero, cantO tablero)
+  l = sum [1 | x<-tablero, x/='O', x/='X', x/='E']
 
 -- | Define que figura se juega.
 prox_jugador :: Tablero -> Char
@@ -91,6 +101,10 @@ juego tablero = do
   putStr $ show $ prox_jugador tablero
   putStr "\n"
   putStr $ mostrarTablero $ mover tablero (prox_jugador tablero) 0
+  if not $ formato tablero
+    then error "Formato inválido"
+    else putStr "Formato válido\n"
+
 
 -- | Función principal
 main :: IO ()

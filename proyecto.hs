@@ -122,7 +122,7 @@ formato tablero
 -- | Define que figura se juega.
 prox_jugador :: Tablero -> Char
 prox_jugador tablero
-  | cantX tablero > cantO tablero = 'X'
+  | cantX tablero < cantO tablero = 'X'
   | otherwise = 'O'
 
 -- | Cuenta la cantidad de 'X'
@@ -153,26 +153,40 @@ moverJugador tablero pos
 jugadorX :: String -> IO()
 jugadorX tablero = do
   putStrLn $ show $ prox_jugador tablero
+  pos <- getLine
+  let (valido, tab) = (moverJugador tablero (read pos) )
+  if valido
+    then juego tab
+    else jugadorX tablero
+
 
 jugadorO :: String -> IO()
 jugadorO tablero = do
   putStrLn $ show $ prox_jugador tablero
-
+  juego (mover tablero 'O' (mejorMovimiento tablero))
 
 -- | Empieza el juego con es estado recibido desde main
 juego :: String -> IO()
 juego tablero = do
+  putStr $ mostrarTablero tablero
   if not $ formato tablero
     then error "Formato de archivo inválido"
     else do
       if (ganador tablero) /= ' '
         then putStrLn $ "\nEl ganador es" ++ show (ganador tablero) ++ "\n"
         else do
-          if prox_jugador tablero == 'X'
+          if 'X' == (prox_jugador tablero)
             then do
-              jugadorX tablero
+              --jugadorX tablero
+              pos <- getLine
+              let (valido, tab) = (moverJugador tablero (read pos) )
+              if valido
+                then juego tab
+                else jugadorX tablero
             else do
-              jugadorO tablero
+              --jugadorO tablero
+              juego (mover tablero 'O' (mejorMovimiento tablero))
+
 
 -- | Función principal
 main :: IO ()
@@ -182,5 +196,4 @@ main = do
     let tablero = unaLinea cadena
     --  Imprime el tablero
     putStrLn "\nParadigmas de programación\n--------------------------\nTA TE TI\n--------\n"
-    putStr $ mostrarTablero tablero
     juego tablero

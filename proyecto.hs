@@ -177,14 +177,8 @@ juego tablero = do
         else do
           if 'X' == (prox_jugador tablero)
             then do
-              --jugadorX tablero
-              pos <- getLine
-              let (valido, tab) = (moverJugador tablero (read pos) )
-              if valido
-                then juego tab
-                else jugadorX tablero
+              juego (mover tablero 'X' (mejorMovimiento tablero))
             else do
-              --jugadorO tablero
               juego (mover tablero 'O' (mejorMovimiento tablero))
 
 

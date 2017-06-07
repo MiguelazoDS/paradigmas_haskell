@@ -26,6 +26,56 @@ mostrarTablero tablero =
   "|   |   |   |\n" ++
   "+---+---+---+\n"
 
+scoreBoard :: Tablero -> Char -> Int
+scoreBoard board player
+  | (ganador board) == ' '     = 0
+  | (ganador board) == player  = 1
+  | otherwise                 = -1
+
+-- evaluateBoardMin
+-- scores the board and returns minimum value move for the given board
+evaluateBoardMin :: Tablero -> Int
+evaluateBoardMin tablero
+  | length (movPermitidos tablero) == 0    = scoreBoard tablero 'O'
+  | otherwise = foldr max (head scores) (tail scores)
+  where
+  tableros = map (mover tablero 'O') (movPermitidos tablero)
+  scores = map evaluateBoardMax tableros
+
+-- evaluateBoardMin
+-- scores the board and returns maximum value move for the given board
+evaluateBoardMax :: Tablero -> Int
+evaluateBoardMax tablero
+  | length (movPermitidos tablero) == 0    = scoreBoard tablero 'O'
+  | otherwise = foldr min (head scores) (tail scores)
+  where
+  tableros = map (mover tablero 'X') (movPermitidos tablero)
+  scores = map evaluateBoardMin tableros
+
+-- scoreMoves
+-- Compute score for each possible move
+-- Returns list of (Move, Score) tuples
+scoreMoves :: Tablero -> [(Int, Int)]
+scoreMoves tablero = zip (movPermitidos tablero) scores
+  where
+  tableros = map (mover tablero 'O') (movPermitidos tablero)
+  scores = map evaluateBoardMax tableros
+
+-- maxScore
+-- returns the move with the highest score
+maxScore :: (Int, Int) -> (Int, Int) -> (Int, Int)
+maxScore (m0, s0) (m1, s1)
+  | s0 > s1 = (m0, s0)
+  | otherwise = (m1, s1)
+
+-- mejorMovimiento
+-- choose the best possible move
+mejorMovimiento :: Tablero -> Int
+mejorMovimiento tablero = movimiento
+  where
+  scored = scoreMoves tablero
+  (movimiento, score) = foldr maxScore (head scored) (tail scored)
+
 
 -- | Omite los espacios y saltos de línea que se leyeron del archivo
 unaLinea :: Tablero -> String
@@ -64,13 +114,10 @@ ganador t
 -- | Verifica que el formato del estado de juego sea válido
 formato :: Tablero -> Bool
 formato tablero
-  | x == 3 && o == 3 = False
-  | x  >= 4 || o >=4 = False
-  | l > 0 = False
-  | otherwise = True
+  | abs(x-o)<=1 && x + o + e == 9 = True
+  | otherwise = False
   where
-  (x,o)=(cantX tablero, cantO tablero)
-  l = sum [1 | x<-tablero, x/='O', x/='X', x/='E']
+  (x,o,e)=(cantX tablero, cantO tablero, cantE tablero)
 
 -- | Define que figura se juega.
 prox_jugador :: Tablero -> Char
@@ -86,6 +133,10 @@ cantX xs = sum [1 | x<-xs, x=='X']
 cantO :: Tablero -> Int
 cantO xs = sum [1 | x<-xs, x=='O']
 
+-- | Cuenta la cantidad de 'E'
+cantE :: Tablero -> Int
+cantE xs = sum [1 | x<-xs, x=='E']
+
 -- mover
 -- Given a tablero, a player and a mover position, returns a new tablero with the
 -- new mover applied
@@ -94,16 +145,19 @@ mover (p:tablero) ch pos
   | pos > 0 = p:[] ++ (mover tablero ch (pos - 1))
   | otherwise = ch:[] ++ tablero
 
+
 -- | Empieza el juego con es estado recibido desde main
 juego :: String -> IO()
 juego tablero = do
-  putStr $ show $ movPermitidos tablero
-  putStr $ show $ prox_jugador tablero
-  putStr "\n"
-  putStr $ mostrarTablero $ mover tablero (prox_jugador tablero) 0
   if not $ formato tablero
-    then error "Formato inválido"
-    else putStr "Formato válido\n"
+    then error "Formato de archivo inválido"
+    else do
+      if (ganador tablero) /= ' '
+        then putStrLn $ "\nEl ganador es" ++ show (ganador tablero) ++ "\n"
+        else do
+          putStrLn "\nTurno CPU\n---------\n"
+          putStr $ mostrarTablero $ mover tablero 'O' (mejorMovimiento tablero)
+          putStr $ show $ movPermitidos tablero
 
 
 -- | Función principal
@@ -113,5 +167,6 @@ main = do
     cadena <- getContents
     let tablero = unaLinea cadena
     --  Imprime el tablero
+    putStrLn "\nParadigmas de programación\n--------------------------\nTA TE TI\n--------\n"
     putStr $ mostrarTablero tablero
     juego tablero

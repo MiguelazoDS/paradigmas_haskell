@@ -145,6 +145,19 @@ mover (p:tablero) ch pos
   | pos > 0 = p:[] ++ (mover tablero ch (pos - 1))
   | otherwise = ch:[] ++ tablero
 
+moverJugador :: Tablero -> Int -> (Bool, Tablero)
+moverJugador tablero pos
+  | not (esValido tablero pos) = (False, tablero)
+  | otherwise = (True, (mover tablero 'X' pos))
+
+jugadorX :: String -> IO()
+jugadorX tablero = do
+  putStrLn $ show $ prox_jugador tablero
+
+jugadorO :: String -> IO()
+jugadorO tablero = do
+  putStrLn $ show $ prox_jugador tablero
+
 
 -- | Empieza el juego con es estado recibido desde main
 juego :: String -> IO()
@@ -155,10 +168,11 @@ juego tablero = do
       if (ganador tablero) /= ' '
         then putStrLn $ "\nEl ganador es" ++ show (ganador tablero) ++ "\n"
         else do
-          putStrLn "\nTurno CPU\n---------\n"
-          putStr $ mostrarTablero $ mover tablero 'O' (mejorMovimiento tablero)
-          putStr $ show $ movPermitidos tablero
-
+          if prox_jugador tablero == 'X'
+            then do
+              jugadorX tablero
+            else do
+              jugadorO tablero
 
 -- | Función principal
 main :: IO ()

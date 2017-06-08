@@ -6,6 +6,7 @@ module Main where
 
 import Control.Monad
 import Data.Char
+import System.Random
 
 type Tablero = String
 -- Esta función quita del string pasado como argumento los saltos de línea.
@@ -177,7 +178,8 @@ juego tablero = do
         else do
           if 'X' == (prox_jugador tablero)
             then do
-              juego (mover tablero 'X' (head (movPermitidos tablero)))
+              num <- randomRIO (1,length (movPermitidos tablero)-1) :: IO Int
+              juego (mover tablero 'X' ((movPermitidos tablero)!!num))
             else do
               juego (mover tablero 'O' (mejorMovimiento tablero))
 

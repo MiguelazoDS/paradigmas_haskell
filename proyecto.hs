@@ -23,7 +23,7 @@ type Tablero = String
 
 -- | Función principal. Lee un archivo con un estado del juego,
 --
--- llama a la función __'unaLinea'__ y luego a la función __'juego'__
+-- Invoca a la función __'unaLinea'__ y luego a la función __'juego'__
 --
 main :: IO ()
 main = do
@@ -153,7 +153,7 @@ proxJugador tablero
 
 -- | Arma una lista con todas posiciones vacías.
 --
--- Invoca a __'ganador'__ y __'esValido'__
+-- Utiliza la función __'ganador'__ y la función __'esValido'__
 movPermitidos :: Tablero -> [Int]
 movPermitidos tablero
   | (ganador tablero) /= ' ' = []
@@ -185,43 +185,49 @@ mover (p:tablero) ch pos
 mejorMovimiento :: Tablero -> Int
 mejorMovimiento tablero = movimiento
   where
-  scored = puntajeMovimientos tablero
-  (movimiento, score) = foldr maximoPuntaje (head scored) (tail scored)
+  mov_puntaje = puntajeMovimientos tablero
+  (movimiento, puntaje) = foldr maximoPuntaje (head mov_puntaje) (tail mov_puntaje)
 
 
 -- | Retorna una lista de tuplas (movimiento, puntaje)
+--
+-- Invoca a __'movPermitidos'__ y a __'mayorPuntaje'__
 puntajeMovimientos :: Tablero -> [(Int, Int)]
-puntajeMovimientos tablero = zip (movPermitidos tablero) scores
+puntajeMovimientos tablero = zip (movPermitidos tablero) puntajes
   where
   tableros = map (mover tablero 'O') (movPermitidos tablero)
-  scores = map evaluateBoardMax tableros
+  puntajes = map mayorPuntaje tableros
 
 
--- | scores the board and returns maximum value move for the given board
-evaluateBoardMax :: Tablero -> Int
-evaluateBoardMax tablero
-  | length (movPermitidos tablero) == 0    = scoreBoard tablero 'O'
-  | otherwise = foldr min (head scores) (tail scores)
+-- | Retorna el mayor puntaje de movimiento para el tablero recibido
+--
+-- Invoca a __'movPermitidos'__, __'puntajeTablero'__, __'mover'__ y __'menorPuntaje'__
+mayorPuntaje :: Tablero -> Int
+mayorPuntaje tablero
+  | length (movPermitidos tablero) == 0    = puntajeTablero tablero 'O'
+  | otherwise = foldr min (head puntajes) (tail puntajes)
   where
   tableros = map (mover tablero 'X') (movPermitidos tablero)
-  scores = map evaluateBoardMin tableros
+  puntajes = map menorPuntaje tableros
 
 
--- | scores the board and returns minimum value move for the given board
-evaluateBoardMin :: Tablero -> Int
-evaluateBoardMin tablero
-  | length (movPermitidos tablero) == 0    = scoreBoard tablero 'O'
-  | otherwise = foldr max (head scores) (tail scores)
+-- | Retorna el mayor puntaje de movimiento para el tablero recibido
+--
+-- Invoca a __'movPermitidos'__, __'puntajeTablero'__, __'mover'__ y __'mayorPuntaje'__
+menorPuntaje :: Tablero -> Int
+menorPuntaje tablero
+  | length (movPermitidos tablero) == 0    = puntajeTablero tablero 'O'
+  | otherwise = foldr max (head puntajes) (tail puntajes)
   where
   tableros = map (mover tablero 'O') (movPermitidos tablero)
-  scores = map evaluateBoardMax tableros
+  puntajes = map mayorPuntaje tableros
 
 
--- | Asigna un puntaje
-scoreBoard :: Tablero -> Char -> Int
-scoreBoard board player
-  | (ganador board) == ' '     = 0
-  | (ganador board) == player  = 1
+-- | Asigna un puntaje a un jugador recibido (Char).
+puntajeTablero :: Tablero -> Char -> Int
+puntajeTablero tablero jugador
+  | (ganador tablero) == ' '     = 0
+  | (ganador tablero) == jugador  = 1
   | otherwise                 = -1
 
 

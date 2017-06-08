@@ -170,24 +170,28 @@ esValido tablero p
 
 -- | Esta función realiza el movimiento y devuelve un nuevo tablero
 --
--- La función dentro de su definición se llama a si misma. 
+-- La función dentro de su definición se llama a si misma.
 mover :: Tablero -> Char -> Int -> Tablero
 mover (p:tablero) ch pos
   | pos > 0 = p:[] ++ (mover tablero ch (pos - 1))
   | otherwise = ch:[] ++ tablero
 
 
--- | Dado un tablero elige una posición que asegura no se pierde
+-- | Dado un tablero retorna una posición que asegura no se pierde
+--
+-- Utiliza la función __'puntajeMovimientos'__ y luego invoca a __'maximoPuntaje'__
+--
+-- para obtener la posición deseada
 mejorMovimiento :: Tablero -> Int
 mejorMovimiento tablero = movimiento
   where
-  scored = scoreMoves tablero
-  (movimiento, score) = foldr maxScore (head scored) (tail scored)
+  scored = puntajeMovimientos tablero
+  (movimiento, score) = foldr maximoPuntaje (head scored) (tail scored)
 
 
 -- | Retorna una lista de tuplas (movimiento, puntaje)
-scoreMoves :: Tablero -> [(Int, Int)]
-scoreMoves tablero = zip (movPermitidos tablero) scores
+puntajeMovimientos :: Tablero -> [(Int, Int)]
+puntajeMovimientos tablero = zip (movPermitidos tablero) scores
   where
   tableros = map (mover tablero 'O') (movPermitidos tablero)
   scores = map evaluateBoardMax tableros
@@ -222,7 +226,7 @@ scoreBoard board player
 
 
 -- | De dos tuplas (movimiento, puntaje) devuelve la de mayor puntaje
-maxScore :: (Int, Int) -> (Int, Int) -> (Int, Int)
-maxScore (m0, s0) (m1, s1)
+maximoPuntaje :: (Int, Int) -> (Int, Int) -> (Int, Int)
+maximoPuntaje (m0, s0) (m1, s1)
   | s0 > s1 = (m0, s0)
   | otherwise = (m1, s1)

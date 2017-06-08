@@ -56,6 +56,10 @@ unaLinea xs = [x | x <- xs, x/='\n', x/=' ']
 -- En el caso del jugador 'O' la posición se determina llamando a __'mejorMovimiento'__
 --
 -- Luego de realizado el movimiento se __'juego'__ se llama a si misma con el tablero ya modificado con el último movimiento
+--
+-- Para el caso en que el tablero esté vacío para acelerar ese primer movimiento simplemente se mueve el jugador 'O'
+--
+-- (Ya que en caso de que esté vacío es el jugador por defecto) a la posición 4 del tablero (el centro)
 juego :: Tablero -> IO()
 juego tablero = do
   putStr $ mostrarTablero tablero
@@ -71,8 +75,13 @@ juego tablero = do
               num <- randomRIO (1,length (movPermitidos tablero)-1) :: IO Int
               juego (mover tablero 'X' ((movPermitidos tablero)!!num))
             else do
-              putStrLn "\nTurno jugador O\n"
-              juego (mover tablero 'O' (mejorMovimiento tablero))
+              if (cantE tablero == 9)
+                then do
+                  putStrLn "\nTurno jugador O\n"
+                  juego (mover tablero 'O' 4)
+                else do
+                  putStrLn "\nTurno jugador O\n"
+                  juego (mover tablero 'O' (mejorMovimiento tablero))
 
 
 -- | Muestra una representación del tablero considerando el estado que se leyó desde archivo
@@ -227,8 +236,8 @@ menorPuntaje tablero
 puntajeTablero :: Tablero -> Char -> Int
 puntajeTablero tablero jugador
   | (ganador tablero) == ' '     = 0
-  | (ganador tablero) == jugador  = 1
-  | otherwise                 = -1
+  | (ganador tablero) == jugador  = 10
+  | otherwise                 = -10
 
 
 -- | De dos tuplas (movimiento, puntaje) devuelve la de mayor puntaje

@@ -1,16 +1,17 @@
 {-# LANGUAGE Haskell98 #-}
 -- cat file | ./leer línea
--- parse error debido al espacio entre líneas
 
+-- | Módulo principal - Main
 module Main where
 
 import Control.Monad
 import Data.Char
 import System.Random
 
+-- | Sinónimo de tipo
 type Tablero = String
--- Esta función quita del string pasado como argumento los saltos de línea.
 
+-- | Muestra el tablero considerando el contenido que se leyó del archivo
 mostrarTablero :: Tablero -> String
 mostrarTablero tablero =
   "+---+---+---+\n" ++
@@ -27,14 +28,14 @@ mostrarTablero tablero =
   "|   |   |   |\n" ++
   "+---+---+---+\n"
 
+-- | Asigna un puntaje
 scoreBoard :: Tablero -> Char -> Int
 scoreBoard board player
   | (ganador board) == ' '     = 0
   | (ganador board) == player  = 1
   | otherwise                 = -1
 
--- evaluateBoardMin
--- scores the board and returns minimum value move for the given board
+-- | scores the board and returns minimum value move for the given board
 evaluateBoardMin :: Tablero -> Int
 evaluateBoardMin tablero
   | length (movPermitidos tablero) == 0    = scoreBoard tablero 'O'
@@ -43,8 +44,7 @@ evaluateBoardMin tablero
   tableros = map (mover tablero 'O') (movPermitidos tablero)
   scores = map evaluateBoardMax tableros
 
--- evaluateBoardMin
--- scores the board and returns maximum value move for the given board
+-- | scores the board and returns maximum value move for the given board
 evaluateBoardMax :: Tablero -> Int
 evaluateBoardMax tablero
   | length (movPermitidos tablero) == 0    = scoreBoard tablero 'O'
@@ -53,24 +53,20 @@ evaluateBoardMax tablero
   tableros = map (mover tablero 'X') (movPermitidos tablero)
   scores = map evaluateBoardMin tableros
 
--- scoreMoves
--- Compute score for each possible move
--- Returns list of (Move, Score) tuples
+-- | Retorna una lista de tuplas (movimiento, puntaje)
 scoreMoves :: Tablero -> [(Int, Int)]
 scoreMoves tablero = zip (movPermitidos tablero) scores
   where
   tableros = map (mover tablero 'O') (movPermitidos tablero)
   scores = map evaluateBoardMax tableros
 
--- maxScore
--- returns the move with the highest score
+-- | De dos tuplas (movimiento, puntaje) devuelve la de mayor puntaje
 maxScore :: (Int, Int) -> (Int, Int) -> (Int, Int)
 maxScore (m0, s0) (m1, s1)
   | s0 > s1 = (m0, s0)
   | otherwise = (m1, s1)
 
--- mejorMovimiento
--- choose the best possible move
+-- | Dado un tablero elige una posición que asegura no se pierde
 mejorMovimiento :: Tablero -> Int
 mejorMovimiento tablero = movimiento
   where
@@ -82,13 +78,14 @@ mejorMovimiento tablero = movimiento
 unaLinea :: Tablero -> String
 unaLinea xs = [x | x <- xs, x/='\n', x/=' ']
 
--- Retorna verdadero si el movimiento es válido
+-- | Retorna verdadero si el movimiento es válido
 esValido :: Tablero -> Int -> Bool
 esValido tablero p
   | p < 0 || p >= 9           = False   -- out of range
   | tablero !! p == 'E'       = True    -- empty
   | otherwise                 = False   -- played
 
+-- | Arma una lista con todas posiciones vacías.
 movPermitidos :: Tablero -> [Int]
 movPermitidos tablero
   | (ganador tablero) /= ' ' = []
@@ -112,7 +109,7 @@ ganador t
   -- No hay ganador
   | otherwise = ' '
 
--- | Verifica que el formato del estado de juego sea válido
+-- | Verifica que el formato del estado de juego obtenido del archivo sea válido
 formato :: Tablero -> Bool
 formato tablero
   | abs(x-o)<=1 && x + o + e == 9 = True
@@ -120,7 +117,7 @@ formato tablero
   where
   (x,o,e)=(cantX tablero, cantO tablero, cantE tablero)
 
--- | Define que figura se juega.
+-- | Define que jugador tiene el siguiente turno
 prox_jugador :: Tablero -> Char
 prox_jugador tablero
   | cantX tablero < cantO tablero = 'X'
@@ -138,35 +135,15 @@ cantO xs = sum [1 | x<-xs, x=='O']
 cantE :: Tablero -> Int
 cantE xs = sum [1 | x<-xs, x=='E']
 
--- mover
--- Given a tablero, a player and a mover position, returns a new tablero with the
--- new mover applied
+
+-- | new mover applied
 mover :: Tablero -> Char -> Int -> Tablero
 mover (p:tablero) ch pos
   | pos > 0 = p:[] ++ (mover tablero ch (pos - 1))
   | otherwise = ch:[] ++ tablero
 
-moverJugador :: Tablero -> Int -> (Bool, Tablero)
-moverJugador tablero pos
-  | not (esValido tablero pos) = (False, tablero)
-  | otherwise = (True, (mover tablero 'X' pos))
-
-jugadorX :: String -> IO()
-jugadorX tablero = do
-  putStrLn $ show $ prox_jugador tablero
-  pos <- getLine
-  let (valido, tab) = (moverJugador tablero (read pos) )
-  if valido
-    then juego tab
-    else jugadorX tablero
-
-
-jugadorO :: String -> IO()
-jugadorO tablero = do
-  putStrLn $ show $ prox_jugador tablero
-  juego (mover tablero 'O' (mejorMovimiento tablero))
-
--- | Empieza el juego con es estado recibido desde main
+-- | Empieza el juego con un estado recibido desde main
+-- | y finaliza cuando encuentra un ganador o no se pueden hacer más movimientos
 juego :: String -> IO()
 juego tablero = do
   putStr $ mostrarTablero tablero

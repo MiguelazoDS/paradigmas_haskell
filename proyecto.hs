@@ -177,7 +177,7 @@ juego tablero = do
         else do
           if 'X' == (prox_jugador tablero)
             then do
-              juego (mover tablero 'X' (mejorMovimiento tablero))
+              juego (mover tablero 'X' (head (movPermitidos tablero)))
             else do
               juego (mover tablero 'O' (mejorMovimiento tablero))
 

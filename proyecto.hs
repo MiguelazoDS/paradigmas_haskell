@@ -1,7 +1,17 @@
 {-# LANGUAGE Haskell98 #-}
 -- cat file | ./leer línea
 
--- | Módulo principal - Main
+-- | Alumno: Cazajous Miguel A.
+--
+-- Asignatura: Paradigmas de programación
+--
+-- Docente: Ing. Wolfmann Gustavo
+--
+-- Tema:
+--
+--      - Algoritmo minimax para elección de mejor movimiento en el juego TA TE TI
+--
+
 module Main where
 
 import Control.Monad
@@ -11,7 +21,49 @@ import System.Random
 -- | Sinónimo de tipo
 type Tablero = String
 
--- | Muestra el tablero considerando el contenido que se leyó del archivo
+
+-- | Función principal. Lee un archivo con un estado del juego,
+--
+-- llama a la función __'unaLinea'__ y luego a la función __'juego'__
+--
+main :: IO ()
+main = do
+    --  Lee contenido de un archivo y lo guarda en cadena
+    cadena <- getContents
+    let tablero = unaLinea cadena
+    --  Imprime el tablero
+    putStrLn "\nParadigmas de programación\n--------------------------\nTA TE TI\n--------\n"
+    juego tablero
+
+
+-- | Omite los espacios y saltos de línea que se leyeron del archivo
+--
+-- Y devuelve un String con 9 valores entre 'X', 'O' y 'E'
+unaLinea :: Tablero -> String
+unaLinea xs = [x | x <- xs, x/='\n', x/=' ']
+
+
+-- | Llama a __'mostrarTablero'__ y empieza el juego con un estado recibido desde __'main'__
+--
+--  .........
+juego :: String -> IO()
+juego tablero = do
+  putStr $ mostrarTablero tablero
+  if not $ formato tablero
+    then error "Formato de archivo inválido"
+    else do
+      if (ganador tablero) /= ' '
+        then putStrLn $ "\nEl ganador es" ++ show (ganador tablero) ++ "\n"
+        else do
+          if 'X' == (prox_jugador tablero)
+            then do
+              num <- randomRIO (1,length (movPermitidos tablero)-1) :: IO Int
+              juego (mover tablero 'X' ((movPermitidos tablero)!!num))
+            else do
+              juego (mover tablero 'O' (mejorMovimiento tablero))
+
+
+-- | mostrarTablero: Muestra una representación del tablero considerando el estado que se leyó desde archivo
 mostrarTablero :: Tablero -> String
 mostrarTablero tablero =
   "+---+---+---+\n" ++
@@ -74,9 +126,7 @@ mejorMovimiento tablero = movimiento
   (movimiento, score) = foldr maxScore (head scored) (tail scored)
 
 
--- | Omite los espacios y saltos de línea que se leyeron del archivo
-unaLinea :: Tablero -> String
-unaLinea xs = [x | x <- xs, x/='\n', x/=' ']
+
 
 -- | Retorna verdadero si el movimiento es válido
 esValido :: Tablero -> Int -> Bool
@@ -91,8 +141,8 @@ movPermitidos tablero
   | (ganador tablero) /= ' ' = []
   | otherwise = [y | y <- [0..8], (esValido tablero y)]
 
--- | Verifica cada línea vertical, horizontal y diagonal en busca de un ganador
--- | Si lo encuentra devuelve el ganador (X u O), sino devuelve caracter vacío
+-- | Verifica cada línea vertical, horizontal y diagonal en busca de un ganador.
+-- Si lo encuentra devuelve el ganador (X u O), sino devuelve caracter vacío
 ganador :: Tablero -> Char
 ganador t
   -- Líneas horizontales
@@ -141,32 +191,3 @@ mover :: Tablero -> Char -> Int -> Tablero
 mover (p:tablero) ch pos
   | pos > 0 = p:[] ++ (mover tablero ch (pos - 1))
   | otherwise = ch:[] ++ tablero
-
--- | Empieza el juego con un estado recibido desde main
--- | y finaliza cuando encuentra un ganador o no se pueden hacer más movimientos
-juego :: String -> IO()
-juego tablero = do
-  putStr $ mostrarTablero tablero
-  if not $ formato tablero
-    then error "Formato de archivo inválido"
-    else do
-      if (ganador tablero) /= ' '
-        then putStrLn $ "\nEl ganador es" ++ show (ganador tablero) ++ "\n"
-        else do
-          if 'X' == (prox_jugador tablero)
-            then do
-              num <- randomRIO (1,length (movPermitidos tablero)-1) :: IO Int
-              juego (mover tablero 'X' ((movPermitidos tablero)!!num))
-            else do
-              juego (mover tablero 'O' (mejorMovimiento tablero))
-
-
--- | Función principal
-main :: IO ()
-main = do
-    --  Lee contenido de un archivo y lo guarda en cadena
-    cadena <- getContents
-    let tablero = unaLinea cadena
-    --  Imprime el tablero
-    putStrLn "\nParadigmas de programación\n--------------------------\nTA TE TI\n--------\n"
-    juego tablero

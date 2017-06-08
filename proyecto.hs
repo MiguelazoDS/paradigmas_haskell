@@ -39,7 +39,7 @@ main = do
 -- | Omite los espacios y saltos de línea que se leyeron del archivo
 --
 -- y devuelve un String con 9 valores entre __X__, __O__ y __E__
-unaLinea :: Tablero -> String
+unaLinea :: String -> Tablero
 unaLinea xs = [x | x <- xs, x/='\n', x/=' ']
 
 
@@ -56,7 +56,7 @@ unaLinea xs = [x | x <- xs, x/='\n', x/=' ']
 -- En el caso del jugador 'O' la posición se determina llamando a __'mejorMovimiento'__
 --
 -- Luego de realizado el movimiento se __'juego'__ se llama a si misma con el tablero ya modificado con el último movimiento
-juego :: String -> IO()
+juego :: Tablero -> IO()
 juego tablero = do
   putStr $ mostrarTablero tablero
   if not $ formato tablero

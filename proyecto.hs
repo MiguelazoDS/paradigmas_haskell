@@ -1,16 +1,50 @@
 {-# LANGUAGE Haskell98 #-}
--- cat file | ./leer línea
 
--- | Alumno: Cazajous Miguel A.
+-- | __Alumno:__ Cazajous Miguel A.
 --
--- Asignatura: Paradigmas de programación
+-- __Asignatura:__ Paradigmas de programación
 --
--- Docente: Ing. Wolfmann Gustavo
+-- __Docente:__ Ing. Wolfmann Gustavo
 --
--- Tema:
+-- __Tema:__
 --
 --      - Algoritmo minimax para elección de mejor movimiento en el juego TA TE TI
 --
+-- __Descripción:__
+--
+--      - El programa comienza tomando un archivo del cual lee un estado de juego
+--
+-- muestra el contenido obtenido representado en un tablero y verifica que este cumpla con un estado válido,
+--
+-- de no serlo el programa finaliza, de ser válido continua y verifica si hay un ganador (de haberlo lo muestra por pantalla)
+--
+-- (es posible que el estado sea de un juego finalizado) si no hay sigue y comprueba que jugador debe continuar
+--
+-- (el que tiene un movimiento menos) el jugador en caso de que tengan la misma cantidad de movimientos es el jugador O
+--
+-- el cual es el jugador "imposible".
+--
+-- El jugador X elige entre los posibles valores disponibles uno al azar.
+--
+-- De acuerdo a como está implementado es posible que el jugador O pierda si el siguiente turno es del jugador X
+--
+-- y la función random justo elige el valor que lo consagra ganador, de otra forma el jugador O que es el que ejecuta el algoritmo
+--
+-- Minimax será el ganador.
+--
+-- Para algunos estados de juego donde el jugador O puede ganar con un simple movimiento se puede observar que esto no ocurre siempre
+--
+-- y se debe a que cuando se consideran los puntajes solo se verifica que X no sea el ganador de otra forma le asigna el mismo puntaje
+--
+-- a un movimiento que lo consagre ganador instantáneamente y a otro que no y luego se elige el primero de la lista.
+--
+-- Por ese motivo puede demorarse más de la lógica la victoria del jugador O
+--
+-- Para ejecutar el programa se hizo uso de las tuberías.
+--
+-- __cat archivo | runhaskell programa.hs__
+--
+-- Donde "archivo" representa a los diferentes estados del juego 
 
 module Main where
 
@@ -45,7 +79,7 @@ unaLinea xs = [x | x <- xs, x/='\n', x/=' ']
 
 -- | Llama a __'mostrarTablero'__ y empieza el juego con un estado recibido desde __'main'__
 --
---  Verifica que si hay un ganador llamando a __'ganador'__, si lo hay, lo muestra. En caso contrario continua
+--  Verifica si hay un ganador llamando a __'ganador'__, si lo hay, lo muestra. En caso contrario continua
 --
 -- Define cual es el jugador que debe continuar llamando a __'proxJugador'__
 --
@@ -177,13 +211,11 @@ esValido tablero p
   | otherwise                 = False   -- played
 
 
--- | Esta función realiza el movimiento y devuelve un nuevo tablero
---
--- La función dentro de su definición se llama a si misma.
+-- | Esta función realiza el movimiento del Char a la posición Int y devuelve un nuevo tablero
 mover :: Tablero -> Char -> Int -> Tablero
-mover (p:tablero) ch pos
-  | pos > 0 = p:[] ++ (mover tablero ch (pos - 1))
-  | otherwise = ch:[] ++ tablero
+mover (p:tablero) jugador pos
+  | pos > 0 = p:[] ++ (mover tablero jugador  (pos - 1))
+  | otherwise = jugador:[] ++ tablero
 
 
 -- | Dado un tablero retorna una posición que asegura no se pierde
@@ -220,7 +252,7 @@ mayorPuntaje tablero
   puntajes = map menorPuntaje tableros
 
 
--- | Retorna el mayor puntaje de movimiento para el tablero recibido
+-- | Retorna el menor puntaje de movimiento para el tablero recibido
 --
 -- Invoca a __'movPermitidos'__, __'puntajeTablero'__, __'mover'__ y __'mayorPuntaje'__
 menorPuntaje :: Tablero -> Int

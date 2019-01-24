@@ -10,6 +10,17 @@
 --
 --      - Algoritmo minimax para elección de mejor movimiento en el juego TA TE TI
 --
+-- __Requisitos:__ 
+-- 	
+-- 	- Se necesita instalar ghc y el módulo random.
+--
+-- sudo pacman -S ghc
+--
+-- Para el módulo descargarlo de <https://hackage.haskell.org/package/random> 
+--
+-- y seguir las instrucciones de <https://wiki.haskell.org/Cabal/How_to_install_a_Cabal_package>
+--
+--
 -- __Descripción:__
 --
 --      - El programa comienza tomando un archivo del cual lee un estado de juego

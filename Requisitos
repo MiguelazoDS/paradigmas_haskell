@@ -1,8 +1,0 @@
-Instalar GHCI 
-
-- sudo pacman -S ghci 
-
-Instalar módulo Random
-
-- sudo pacman -S haskell-random 
-

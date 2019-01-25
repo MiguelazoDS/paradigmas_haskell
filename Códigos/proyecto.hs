@@ -14,7 +14,7 @@
 -- 	
 -- 	- Se necesita instalar ghc y el módulo random.
 --
--- sudo pacman -S ghc
+-- sudo pacman -S ghc ghc-static (Para distribuciones basadas en Arch)
 --
 -- Para el módulo descargarlo de <https://hackage.haskell.org/package/random> 
 --
@@ -86,7 +86,9 @@ unaLinea xs = [x | x <- xs, x/='\n', x/=' ']
 
 -- | Llama a __'mostrarString'__ para mostrar una representación del estado del juego y 
 --
--- luego verifica mediante __'formato'__ que el estado recibido es correcto.
+-- luego verifica mediante __'formato'__ que el estado recibido es correcto. Sino lo es sale del programa 
+--
+-- con un mensaje de error.
 --
 -- Verifica si hay un ganador llamando a la función __'ganador'__. Si el valor devuelto no es un caracter 
 --
@@ -98,16 +100,15 @@ unaLinea xs = [x | x <- xs, x/='\n', x/=' ']
 --
 -- y realiza el movimiento llamando a la función __'mover'__. Para el valor aleatorio tomamos la longitud total
 --
--- de la lista devuelta por __'movPermitidos'__ menos 1 (la lista comienza desde 0) 
+-- de la lista devuelta por __'movPermitidos'__ menos 1 (la lista comienza desde 0). Finalmente vuelve a llamar 
 --
--- En el caso del jugador 'O' la posición se determina llamando a __'mejorMovimiento'__
+-- la función __'juego'__ de manera recursiva para continuar con el juego. 
 --
--- Luego de realizado el movimiento se __'juego'__ se llama a si misma con el tablero ya modificado con el último movimiento
+-- Si el próximo jugador es 'O' primero verifica si es el primer movimiento. De serlo coloca 'O' en el centro
 --
--- Para el caso en que el tablero esté vacío para acelerar ese primer movimiento simplemente se mueve el jugador 'O'
+-- del tablero, en caso contrario llama a la función __'mejorMovimiento'__.
 --
--- (Ya que en caso de que esté vacío es el jugador por defecto) a la posición 4 del tablero (el centro)
-juego :: String -> IO()
+-- Luego de realizado el movimiento se llama a __'juego'__ nuevamente para continuar con el proceso.
 juego tablero = do
   putStr $ mostrarString tablero
   if not $ formato tablero
@@ -131,7 +132,7 @@ juego tablero = do
                   juego (mover tablero 'O' (mejorMovimiento tablero))
 
 
--- | Muestra una representación del tablero considerando el estado que se leyó desde archivo
+-- | Muestra una representación del tablero considerando el estado que se leyó desde el archivo
 mostrarString :: String -> String
 mostrarString tablero =
   "+---+---+---+\n" ++
@@ -181,11 +182,11 @@ cantE xs = sum [1 | x<-xs, x=='E']
 
 -- | Verifica cada línea vertical, horizontal y diagonal en busca de un ganador.
 -- 
--- Si lo encuentra devuelve el ganador (X u O), sino devuelve caracter vacío.
+-- Si lo encuentra devuelve el ganador (X u O), sino devuelve un caracter vacío.
 --
 -- Primero verifica que el comienzo de cada fila no sea una E (empty) y luego que los valores 
 --
--- de esa línea sean iguales. Si lo son devuelve ese valor que puede ser X o O.
+-- de esa línea sean iguales. Si lo son devuelve ese valor que puede ser __X__ o __O__.
 --
 -- De igual manera se procede con las columnas y con las diagonales.
 ganador :: String -> Char
@@ -207,7 +208,9 @@ ganador t
 
 -- | Define que jugador tiene el siguiente turno usando __'cantX'__ y __'cantO'__
 --
--- definiendo como siguiente jugador el que tenga un movimiento menos
+-- El jugador elegido para ser el siguiente será el que tenga un movimiento menos.
+--
+-- Nótese que en caso de igualdad siempre el jugador 'O' mueve primero.
 proxJugador :: String -> Char
 proxJugador tablero
   | cantX tablero < cantO tablero = 'X'
@@ -240,17 +243,31 @@ movPermitidos tablero
 -- devuelve falso.
 esValido :: String -> Int -> Bool
 esValido tablero p
-  | p < 0 || p >= 9           = False   -- out of range
-  | tablero !! p == 'E'       = True    -- empty
-  | otherwise                 = False   -- played
+  | p < 0 || p >= 9           = False   
+  | tablero !! p == 'E'       = True    
+  | otherwise                 = False   
 
 
--- | Esta función realiza el movimiento del Char a la posición Int y devuelve un nuevo tablero.
+-- | Esta función realiza el movimiento del jugador a la posición Int y devuelve un nuevo tablero
 --
+-- actualizado donde se encuentra representado el último movimiento.
+-- 
+-- Recibe un estado del juego, __X__ y/o __O__ y una posición válida.
 --
+-- Del estado recibido separa el primer valor y si este es 0 (otherwise) se marca el primer lugar
+--
+-- con el caracter enviado (X,O).
+--
+-- Si el valor es mayor que 0 comienza una llamada recursiva. Empieza a llenar una lista vacía con el primer 
+--
+-- valor del String en cada llamada recursiva, al tener un valor menos la posición se decrementa en 1 hasta
+--
+-- llegar a 0 donde se coloca el caracter recibido. Al final se concatenan los caracteres individuales extraídos
+--
+-- en cada llamada recursiva, el caracter enviado y el resto del String.
 mover :: String -> Char -> Int -> String
 mover (p:tablero) jugador pos
-  | pos > 0 = p:[] ++ (mover tablero jugador  (pos - 1))
+  | pos > 0 = p:[] ++ (mover tablero jugador (pos - 1))
   | otherwise = jugador:[] ++ tablero
 
 

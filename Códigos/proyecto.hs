@@ -20,7 +20,6 @@
 --
 -- y seguir las instrucciones de <https://wiki.haskell.org/Cabal/How_to_install_a_Cabal_package>
 --
---
 -- __Descripción:__
 --
 --      - El programa comienza tomando un archivo del cual lee un estado de juego
@@ -59,12 +58,7 @@
 
 module Main where
 
-import Control.Monad
-import Data.Char
 import System.Random
-
--- | Sinónimo de tipo
-type Tablero = String
 
 -- | Función principal. Lee un archivo con un estado del juego,
 --
@@ -83,20 +77,28 @@ main = do
 
 -- | Omite los espacios y saltos de línea que se leyeron del archivo
 --
--- y devuelve un String con 9 valores entre __X__, __O__ y __E__
-unaLinea :: String -> Tablero
+-- Recibe un String (xs) y remueve cada caracter que sea igual a un salto de línea 
+--
+-- o un espacio. 
+unaLinea :: String -> String
 unaLinea xs = [x | x <- xs, x/='\n', x/=' ']
 
 
--- | Llama a __'mostrarTablero'__ y empieza el juego con un estado recibido desde __'main'__
+-- | Llama a __'mostrarString'__ para mostrar una representación del estado del juego y 
 --
---  Verifica si hay un ganador llamando a __'ganador'__, si lo hay, lo muestra. En caso contrario continua
+-- luego verifica mediante __'formato'__ que el estado recibido es correcto.
 --
--- Define cual es el jugador que debe continuar llamando a __'proxJugador'__
+-- Verifica si hay un ganador llamando a la función __'ganador'__. Si el valor devuelto no es un caracter 
+--
+-- espacio, es decir que hay un ganador, lo muestra. En caso contrario continua.
+--
+-- Si no se ha encontrado un ganador define cual es el jugador que debe continuar llamando a __'proxJugador'__
 --
 -- Para el caso del jugador __X__ elige una posición aleatoria entre las que son válidas (__'movPermitidos'__)
 --
--- y realiza el movimiento llamando a la función __'mover'__
+-- y realiza el movimiento llamando a la función __'mover'__. Para el valor aleatorio tomamos la longitud total
+--
+-- de la lista devuelta por __'movPermitidos'__ menos 1 (la lista comienza desde 0) 
 --
 -- En el caso del jugador 'O' la posición se determina llamando a __'mejorMovimiento'__
 --
@@ -105,9 +107,9 @@ unaLinea xs = [x | x <- xs, x/='\n', x/=' ']
 -- Para el caso en que el tablero esté vacío para acelerar ese primer movimiento simplemente se mueve el jugador 'O'
 --
 -- (Ya que en caso de que esté vacío es el jugador por defecto) a la posición 4 del tablero (el centro)
-juego :: Tablero -> IO()
+juego :: String -> IO()
 juego tablero = do
-  putStr $ mostrarTablero tablero
+  putStr $ mostrarString tablero
   if not $ formato tablero
     then error "Formato de archivo inválido"
     else do
@@ -117,7 +119,7 @@ juego tablero = do
           if 'X' == (proxJugador tablero)
             then do
               putStrLn "\nTurno jugador X\n"
-              num <- randomRIO (1,length (movPermitidos tablero)-1) :: IO Int
+              num <- randomRIO (0,length (movPermitidos tablero)-1) :: IO Int
               juego (mover tablero 'X' ((movPermitidos tablero)!!num))
             else do
               if (cantE tablero == 9)
@@ -130,8 +132,8 @@ juego tablero = do
 
 
 -- | Muestra una representación del tablero considerando el estado que se leyó desde archivo
-mostrarTablero :: Tablero -> String
-mostrarTablero tablero =
+mostrarString :: String -> String
+mostrarString tablero =
   "+---+---+---+\n" ++
   "|   |   |   |\n" ++
   "| " ++ tablero !! 0 : [] ++ " | " ++ tablero !! 1 : [] ++ " | " ++ tablero !! 2 : []  ++ " |\n" ++
@@ -154,7 +156,7 @@ mostrarTablero tablero =
 -- la diferencia entre cantidad de __X__ y __O__ no sea mayor a 1
 --
 -- Utiliza las funciones __'cantX'__, __'cantO'__ y __'cantE'__
-formato :: Tablero -> Bool
+formato :: String -> Bool
 formato tablero
   | abs(x-o)<=1 && x + o + e == 9 = True
   | otherwise = False
@@ -163,23 +165,30 @@ formato tablero
 
 
 -- | Cuenta la cantidad de 'X' que tiene el estado de juego
-cantX :: Tablero -> Int
+cantX :: String -> Int
 cantX xs = sum [1 | x<-xs, x=='X']
 
 
 -- | Cuenta la cantidad de 'O' que tiene el estado de juego
-cantO :: Tablero -> Int
+cantO :: String -> Int
 cantO xs = sum [1 | x<-xs, x=='O']
 
 
 -- | Cuenta la cantidad de 'E' que tiene el estado de juego
-cantE :: Tablero -> Int
+cantE :: String -> Int
 cantE xs = sum [1 | x<-xs, x=='E']
 
 
 -- | Verifica cada línea vertical, horizontal y diagonal en busca de un ganador.
--- Si lo encuentra devuelve el ganador (X u O), sino devuelve caracter vacío
-ganador :: Tablero -> Char
+-- 
+-- Si lo encuentra devuelve el ganador (X u O), sino devuelve caracter vacío.
+--
+-- Primero verifica que el comienzo de cada fila no sea una E (empty) y luego que los valores 
+--
+-- de esa línea sean iguales. Si lo son devuelve ese valor que puede ser X o O.
+--
+-- De igual manera se procede con las columnas y con las diagonales.
+ganador :: String -> Char
 ganador t
   -- Líneas horizontales
   | (t !! 0) /= 'E' && ((t !! 0) == (t !! 1) && (t !! 0) == (t !! 2)) = t !! 0
@@ -199,7 +208,7 @@ ganador t
 -- | Define que jugador tiene el siguiente turno usando __'cantX'__ y __'cantO'__
 --
 -- definiendo como siguiente jugador el que tenga un movimiento menos
-proxJugador :: Tablero -> Char
+proxJugador :: String -> Char
 proxJugador tablero
   | cantX tablero < cantO tablero = 'X'
   | otherwise = 'O'
@@ -208,22 +217,38 @@ proxJugador tablero
 -- | Arma una lista con todas posiciones vacías.
 --
 -- Utiliza la función __'ganador'__ y la función __'esValido'__
-movPermitidos :: Tablero -> [Int]
-movPermitidos tablero
+--
+-- Recibe una cadena con un estado de juego, si existe un ganador devuelve una lista vacía
+--
+-- que representa que no hay movimientos válidos.
+--
+-- De lo contrario usando la función __'esValido'__ devuelve una lista de enteros en las 
+--
+-- posiciones donde todavía puede jugarse. 
+movPermitidos :: String -> [Int]
+movPermitidos tablero 
   | (ganador tablero) /= ' ' = []
   | otherwise = [y | y <- [0..8], (esValido tablero y)]
 
 
 -- | Retorna verdadero si el movimiento es válido
-esValido :: Tablero -> Int -> Bool
+--
+-- Recibe un entero que verifica que esté entre 0 y 9, y un estado de juego.
+--
+-- Si el valor coincide donde se encuentra el caracter "E" devuelve verdadero, de lo contrario 
+--
+-- devuelve falso.
+esValido :: String -> Int -> Bool
 esValido tablero p
   | p < 0 || p >= 9           = False   -- out of range
   | tablero !! p == 'E'       = True    -- empty
   | otherwise                 = False   -- played
 
 
--- | Esta función realiza el movimiento del Char a la posición Int y devuelve un nuevo tablero
-mover :: Tablero -> Char -> Int -> Tablero
+-- | Esta función realiza el movimiento del Char a la posición Int y devuelve un nuevo tablero.
+--
+--
+mover :: String -> Char -> Int -> String
 mover (p:tablero) jugador pos
   | pos > 0 = p:[] ++ (mover tablero jugador  (pos - 1))
   | otherwise = jugador:[] ++ tablero
@@ -234,7 +259,7 @@ mover (p:tablero) jugador pos
 -- Utiliza la función __'puntajeMovimientos'__ y luego invoca a __'maximoPuntaje'__
 --
 -- para obtener la posición deseada
-mejorMovimiento :: Tablero -> Int
+mejorMovimiento :: String -> Int
 mejorMovimiento tablero = movimiento
   where
   mov_puntaje = puntajeMovimientos tablero
@@ -244,7 +269,7 @@ mejorMovimiento tablero = movimiento
 -- | Retorna una lista de tuplas (movimiento, puntaje)
 --
 -- Invoca a __'movPermitidos'__ y a __'mayorPuntaje'__
-puntajeMovimientos :: Tablero -> [(Int, Int)]
+puntajeMovimientos :: String -> [(Int, Int)]
 puntajeMovimientos tablero = zip (movPermitidos tablero) puntajes
   where
   tableros = map (mover tablero 'O') (movPermitidos tablero)
@@ -253,10 +278,10 @@ puntajeMovimientos tablero = zip (movPermitidos tablero) puntajes
 
 -- | Retorna el mayor puntaje de movimiento para el tablero recibido
 --
--- Invoca a __'movPermitidos'__, __'puntajeTablero'__, __'mover'__ y __'menorPuntaje'__
-mayorPuntaje :: Tablero -> Int
+-- Invoca a __'movPermitidos'__, __'puntajeString'__, __'mover'__ y __'menorPuntaje'__
+mayorPuntaje :: String -> Int
 mayorPuntaje tablero
-  | length (movPermitidos tablero) == 0    = puntajeTablero tablero 'O'
+  | length (movPermitidos tablero) == 0    = puntajeString tablero 'O'
   | otherwise = foldr min (head puntajes) (tail puntajes)
   where
   tableros = map (mover tablero 'X') (movPermitidos tablero)
@@ -265,10 +290,10 @@ mayorPuntaje tablero
 
 -- | Retorna el menor puntaje de movimiento para el tablero recibido
 --
--- Invoca a __'movPermitidos'__, __'puntajeTablero'__, __'mover'__ y __'mayorPuntaje'__
-menorPuntaje :: Tablero -> Int
+-- Invoca a __'movPermitidos'__, __'puntajeString'__, __'mover'__ y __'mayorPuntaje'__
+menorPuntaje :: String -> Int
 menorPuntaje tablero
-  | length (movPermitidos tablero) == 0    = puntajeTablero tablero 'O'
+  | length (movPermitidos tablero) == 0    = puntajeString tablero 'O'
   | otherwise = foldr max (head puntajes) (tail puntajes)
   where
   tableros = map (mover tablero 'O') (movPermitidos tablero)
@@ -276,8 +301,8 @@ menorPuntaje tablero
 
 
 -- | Asigna un puntaje a un jugador recibido (Char).
-puntajeTablero :: Tablero -> Char -> Int
-puntajeTablero tablero jugador
+puntajeString :: String -> Char -> Int
+puntajeString tablero jugador
   | (ganador tablero) == ' '     = 0
   | (ganador tablero) == jugador  = 10
   | otherwise                 = -10

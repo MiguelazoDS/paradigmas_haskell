@@ -16,46 +16,43 @@
 --
 -- sudo pacman -S ghc ghc-static (Para distribuciones basadas en Arch)
 --
--- Para el módulo descargarlo de <https://hackage.haskell.org/package/random> 
+-- El módulo debe ser descargado de <https://hackage.haskell.org/package/random> 
 --
--- y seguir las instrucciones de <https://wiki.haskell.org/Cabal/How_to_install_a_Cabal_package>
+-- y se instala siguiendo las instrucciones de <https://wiki.haskell.org/Cabal/How_to_install_a_Cabal_package>
+--
+-- __Ejecución:__
+--
+-- 	- Para ejecutar el programa usar __make arg=file__ 
 --
 -- __Descripción:__
 --
---      - El programa comienza tomando un archivo del cual lee un estado de juego
+--      - El programa comienza tomando un archivo del cual lee un estado de juego, luego muestra el contenido
 --
--- muestra el contenido obtenido representado en un tablero y verifica que este cumpla con un estado válido,
+-- obtenido representado en un tablero y verifica que este cumpla con un estado válido, de no serlo el programa 
 --
--- de no serlo el programa finaliza, de ser válido continua y verifica si hay un ganador (de haberlo lo muestra por pantalla)
+-- finaliza con un mensaje de error, de lo contrario continua y verifica si hay un ganador (de haberlo lo muestra
 --
--- (es posible que el estado sea de un juego finalizado) si no hay sigue y comprueba que jugador debe continuar
+-- por pantalla), si no hay, sigue y comprueba que jugador debe continuar jugando, dándole prioridad al jugador
 --
--- (el que tiene un movimiento menos) el jugador en caso de que tengan la misma cantidad de movimientos es el jugador O
+-- __O__ en caso de que exista la misma cantidad de __O__ que se __X__.
 --
--- el cual es el jugador "imposible".
+-- El jugador __X__ elige entre los posibles valores disponibles uno al azar haciendo uso del módulo __Random__.
 --
--- El jugador X elige entre los posibles valores disponibles uno al azar.
+-- Aunque el jugador __O__ sea un jugador perfecto, pues es el que implementa el algoritmo minimax, aún es posible
 --
--- De acuerdo a como está implementado es posible que el jugador O pierda si el siguiente turno es del jugador X
+-- que este pierda si el siguiente turno es del jugador __X__ y la función random justo elige el valor
 --
--- y la función random justo elige el valor que lo consagra ganador, de otra forma el jugador O que es el que ejecuta el algoritmo
+-- que lo consagra ganador, de otra forma el jugador __O__ será el ganador.
 --
--- Minimax será el ganador.
+-- Para algunos estados de juego donde el jugador __O__ puede ganar con un simple movimiento se puede observar 
 --
--- Para algunos estados de juego donde el jugador O puede ganar con un simple movimiento se puede observar que esto no ocurre siempre
+-- que esto no ocurre siempre y se debe a que cuando se consideran los puntajes solo se verifica que __X__ no 
 --
--- y se debe a que cuando se consideran los puntajes solo se verifica que X no sea el ganador de otra forma le asigna el mismo puntaje
+-- sea el ganador, pero no se considera la profundidad, siempre elige el primero valor de la lista de puntajes,
 --
--- a un movimiento que lo consagre ganador instantáneamente y a otro que no y luego se elige el primero de la lista.
+-- sea o no la forma más rápida de consagrarse ganador. Por ese motivo puede demorarse más la victoria del 
 --
--- Por ese motivo puede demorarse más de la lógica la victoria del jugador O
---
--- Para ejecutar el programa se hizo uso de las tuberías.
---
--- __cat archivo | runhaskell programa.hs__
---
--- Donde "archivo" representa a los diferentes estados del juego 
-
+-- jugador __O__.
 module Main where
 
 import System.Random
@@ -104,9 +101,9 @@ unaLinea xs = [x | x <- xs, x/='\n', x/=' ']
 --
 -- la función __'juego'__ de manera recursiva para continuar con el juego. 
 --
--- Si el próximo jugador es 'O' primero verifica si es el primer movimiento. De serlo coloca 'O' en el centro
+-- Si el próximo jugador es __O__ primero verifica si es el primer movimiento del juego, de serlo coloca __O__ 
 --
--- del tablero, en caso contrario llama a la función __'mejorMovimiento'__.
+-- en el centro del tablero, en caso contrario llama a la función __'mejorMovimiento'__.
 --
 -- Luego de realizado el movimiento se llama a __'juego'__ nuevamente para continuar con el proceso.
 juego tablero = do
@@ -165,26 +162,32 @@ formato tablero
   (x,o,e)=(cantX tablero, cantO tablero, cantE tablero)
 
 
--- | Cuenta la cantidad de 'X' que tiene el estado de juego
+-- | Cuenta la cantidad de __X__ que tiene el estado de juego.
+--
+-- Suma 1 cada vez que un caracter de la cadena es igual a __X__.
 cantX :: String -> Int
 cantX xs = sum [1 | x<-xs, x=='X']
 
 
--- | Cuenta la cantidad de 'O' que tiene el estado de juego
+-- | Cuenta la cantidad de __O__ que tiene el estado de juego.
+--
+-- Suma 1 cada vez que un caracter de la cadena es igual a __O__.
 cantO :: String -> Int
 cantO xs = sum [1 | x<-xs, x=='O']
 
 
--- | Cuenta la cantidad de 'E' que tiene el estado de juego
+-- | Cuenta la cantidad de __E__ que tiene el estado de juego.
+--
+-- Suma 1 cada vez que un caracter de la cadena es igual a __E__.
 cantE :: String -> Int
 cantE xs = sum [1 | x<-xs, x=='E']
 
 
 -- | Verifica cada línea vertical, horizontal y diagonal en busca de un ganador.
 -- 
--- Si lo encuentra devuelve el ganador (X u O), sino devuelve un caracter vacío.
+-- Si lo encuentra devuelve el ganador (__X__ u __O__), sino devuelve un caracter vacío.
 --
--- Primero verifica que el comienzo de cada fila no sea una E (empty) y luego que los valores 
+-- Primero verifica que el comienzo de cada fila no sea una __E__ (empty) y luego que los valores 
 --
 -- de esa línea sean iguales. Si lo son devuelve ese valor que puede ser __X__ o __O__.
 --
@@ -210,7 +213,7 @@ ganador t
 --
 -- El jugador elegido para ser el siguiente será el que tenga un movimiento menos.
 --
--- Nótese que en caso de igualdad siempre el jugador 'O' mueve primero.
+-- Nótese que en caso de igualdad siempre el jugador __O__ mueve primero.
 proxJugador :: String -> Char
 proxJugador tablero
   | cantX tablero < cantO tablero = 'X'
@@ -238,7 +241,7 @@ movPermitidos tablero
 --
 -- Recibe un entero que verifica que esté entre 0 y 9, y un estado de juego.
 --
--- Si el valor coincide donde se encuentra el caracter "E" devuelve verdadero, de lo contrario 
+-- Si el valor coincide donde se encuentra el caracter __E__ devuelve verdadero, de lo contrario 
 --
 -- devuelve falso.
 esValido :: String -> Int -> Bool
@@ -248,7 +251,7 @@ esValido tablero p
   | otherwise                 = False   
 
 
--- | Esta función realiza el movimiento del jugador a la posición Int y devuelve un nuevo tablero
+-- | Esta función realiza el movimiento del jugador a la posición enviada y devuelve un nuevo tablero
 --
 -- actualizado donde se encuentra representado el último movimiento.
 -- 
@@ -256,7 +259,7 @@ esValido tablero p
 --
 -- Del estado recibido separa el primer valor y si este es 0 (otherwise) se marca el primer lugar
 --
--- con el caracter enviado (X,O).
+-- con el caracter enviado (__X__,__O__).
 --
 -- Si el valor es mayor que 0 comienza una llamada recursiva. Empieza a llenar una lista vacía con el primer 
 --
@@ -307,14 +310,30 @@ puntajeMovimientos tablero = zip (movPermitidos tablero) puntajes
   puntajes = map mayorPuntaje tableros
 
 
--- | Retorna el mayor puntaje de movimiento para el tablero recibido
+-- | Retorna el mayor puntaje de movimiento para el tablero recibido.
 --
--- Invoca a __'movPermitidos'__, __'puntajeString'__, __'mover'__ y __'menorPuntaje'__
+-- Invoca a __'movPermitidos'__, __'puntajeJugador'__, __'mover'__ y __'menorPuntaje'__
 --
--- 
+-- Sino existen más movimientos por hacer se fija si el jugador __O__ es el ganador o no, y recibe un puntaje
+--
+-- de acuerdo al resultado.
+--
+-- Al igual que antes en "tableros" se guardan todos los posibles movimientos con una longitud igual a 
+--
+-- la cantidad de __E__ que haya.
+--
+-- En este punto las funciones __'mayorPuntaje'__ y '__menorPuntaje__' comienzan a llamarse estre sí
+--
+-- hasta cubrir con la totalidad de movimientos que quedan por delante hasta finalizar el juego,
+--
+-- intercalando entre los jugadores.
+--
+-- En __otherwise__ se ordenan los puntajes, cuando se juega __X__ se considera el menor puntaje, pues
+--
+-- es el que hace perder al jugador __O__, de lo contrario se considera el mayor. 
 mayorPuntaje :: String -> Int
 mayorPuntaje tablero
-  | length (movPermitidos tablero) == 0    = puntajeString tablero 'O'
+  | length (movPermitidos tablero) == 0    = puntajeJugador tablero 'O'
   | otherwise = foldr min (head puntajes) (tail puntajes)
   where
   tableros = map (mover tablero 'X') (movPermitidos tablero)
@@ -323,23 +342,31 @@ mayorPuntaje tablero
 
 -- | Retorna el menor puntaje de movimiento para el tablero recibido
 --
--- Invoca a __'movPermitidos'__, __'puntajeString'__, __'mover'__ y __'mayorPuntaje'__
+-- Invoca a __'movPermitidos'__, __'puntajeJugador'__, __'mover'__ y __'mayorPuntaje'__
+-- 
+-- Sino existen más movimientos por hacer se fija si el jugador 'O' es el ganador o no.
+--
+-- Al igual que antes en "tableros" se guardan todos los posibles movimientos con una longitud igual a 
+--
+-- la cantidad de __E__ que haya.
 menorPuntaje :: String -> Int
 menorPuntaje tablero
-  | length (movPermitidos tablero) == 0    = puntajeString tablero 'O'
+  | length (movPermitidos tablero) == 0    = puntajeJugador tablero 'O'
   | otherwise = foldr max (head puntajes) (tail puntajes)
   where
   tableros = map (mover tablero 'O') (movPermitidos tablero)
   puntajes = map mayorPuntaje tableros
 
 
--- | Asigna un puntaje a un jugador recibido (Char).
+-- | Asigna un puntaje a un jugador recibido.
 --
 -- Usando la función __'ganador'__, si no hay ganador devuelve 0, si el ganador es el jugador que se 
 --
 -- recibió (Char) devuelve 10, sino lo es devuelve -10.
-puntajeString :: String -> Char -> Int
-puntajeString tablero jugador
+--
+-- Como se vió antes, siempre se comprueba usando al jugador __O__.
+puntajeJugador :: String -> Char -> Int
+puntajeJugador tablero jugador
   | (ganador tablero) == ' '     = 0
   | (ganador tablero) == jugador  = 10
   | otherwise                 = -10

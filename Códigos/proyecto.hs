@@ -271,11 +271,17 @@ mover (p:tablero) jugador pos
   | otherwise = jugador:[] ++ tablero
 
 
--- | Dado un tablero retorna una posición que asegura no se pierde
+-- | Retorna una posición que asegura no se pierde. Recibe un estado de juego y devuelve un entero.
 --
--- Utiliza la función __'puntajeMovimientos'__ y luego invoca a __'maximoPuntaje'__
+-- Utiliza la función __'puntajeMovimientos'__ que devuelve una lista de tuplas que contiene el movimiento y 
 --
--- para obtener la posición deseada
+-- su puntaje. Luego invoca a __'maximoPuntaje'__ que devuelve el movimiento que posee mayor puntaje.
+--
+-- para obtener la posición deseada. La función __foldr__ toma el primer valor de mov_puntaje y aplica la 
+--
+-- función con el último elemento de la lista (tail mov_puntaje), luego aplica la función con el resultado 
+--
+-- de la anterior y el penúltimo valor de la lista. Y así sucesivamente.
 mejorMovimiento :: String -> Int
 mejorMovimiento tablero = movimiento
   where
@@ -285,7 +291,15 @@ mejorMovimiento tablero = movimiento
 
 -- | Retorna una lista de tuplas (movimiento, puntaje)
 --
--- Invoca a __'movPermitidos'__ y a __'mayorPuntaje'__
+-- Invoca a __'movPermitidos'__ y a __'mayorPuntaje'__.
+--
+-- Con la función zip se agrupan en tuplas cada movimiento con su respectivo puntaje.
+--
+-- en "tableros" (lista) se guardan tantos tableros como movimientos posibles haya. Cada uno
+--
+-- representando uno de esos movimientos.
+--
+-- En puntajes (lista) se guardan los puntajes de los estados de juegos guardados en la lista "tableros" 
 puntajeMovimientos :: String -> [(Int, Int)]
 puntajeMovimientos tablero = zip (movPermitidos tablero) puntajes
   where
@@ -296,6 +310,8 @@ puntajeMovimientos tablero = zip (movPermitidos tablero) puntajes
 -- | Retorna el mayor puntaje de movimiento para el tablero recibido
 --
 -- Invoca a __'movPermitidos'__, __'puntajeString'__, __'mover'__ y __'menorPuntaje'__
+--
+-- 
 mayorPuntaje :: String -> Int
 mayorPuntaje tablero
   | length (movPermitidos tablero) == 0    = puntajeString tablero 'O'
@@ -318,15 +334,17 @@ menorPuntaje tablero
 
 
 -- | Asigna un puntaje a un jugador recibido (Char).
+--
+-- Usando la función __'ganador'__, si no hay ganador devuelve 0, si el ganador es el jugador que se 
+--
+-- recibió (Char) devuelve 10, sino lo es devuelve -10.
 puntajeString :: String -> Char -> Int
 puntajeString tablero jugador
   | (ganador tablero) == ' '     = 0
   | (ganador tablero) == jugador  = 10
   | otherwise                 = -10
 
-
--- | De dos tuplas (movimiento, puntaje) devuelve la de mayor puntaje
-maximoPuntaje :: (Int, Int) -> (Int, Int) -> (Int, Int)
+-- | De dos tuplas (movimiento, puntaje) devuelve la de mayor puntaje.
 maximoPuntaje (m0, s0) (m1, s1)
   | s0 > s1 = (m0, s0)
   | otherwise = (m1, s1)
